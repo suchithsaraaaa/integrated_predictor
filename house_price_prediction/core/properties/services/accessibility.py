@@ -1,4 +1,3 @@
-import osmnx as ox
 from shapely.geometry import Point
 from properties.models import AreaMetrics
 
@@ -9,6 +8,8 @@ def compute_accessibility_score(latitude: float, longitude: float) -> float:
     schools, hospitals, and public transport using OSM data.
     """
 
+
+    import osmnx as ox
     point = Point(longitude, latitude)
 
     tags = {

@@ -1,5 +1,4 @@
 from typing import Dict
-import osmnx as ox
 from shapely.geometry import Point
 
 from properties.models import AreaMetrics
@@ -33,6 +32,7 @@ def fallback_insights() -> Dict:
 # -----------------------------
 def _nearest_distance_and_count(latitude: float, longitude: float, tags: dict):
     try:
+        import osmnx as ox
         gdf = ox.features_from_point(
             (latitude, longitude),
             tags=tags,
@@ -101,6 +101,7 @@ def get_area_insights(latitude: float, longitude: float) -> Dict:
     # The 'warmup' endpoint triggers this while the user fills the form.
     try:
         # Increase timeout/settings for OSM
+        import osmnx as ox
         ox.settings.timeout = 30 
         ox.settings.use_cache = True
         ox.settings.cache_folder = 'cache' # Explicitly set to the folder user has
