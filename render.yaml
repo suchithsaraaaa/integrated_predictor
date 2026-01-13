@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: nestiq-predictor
+    env: python
+    region: singapore # Optional: closer to India
+    plan: free
+    buildCommand: "pip install -r house_price_prediction/core/requirements.txt && python house_price_prediction/core/manage.py collectstatic --noinput && python house_price_prediction/core/manage.py migrate && python house_price_prediction/core/manage.py shell -c 'from ingest.generate_data import generate_synthetic_data; generate_synthetic_data()'"
+    startCommand: "cd house_price_prediction/core && gunicorn core.wsgi:application"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.0
+      - key: SECRET_KEY
+        generateValue: true
+      - key: WEB_CONCURRENCY
+        value: 2
