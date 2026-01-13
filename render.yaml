@@ -2,7 +2,7 @@ services:
   - type: web
     name: nestiq-predictor
     env: python
-    region: singapore # Optional: closer to India
+    region: singapore
     plan: free
     buildCommand: "pip install -r house_price_prediction/core/requirements.txt && python house_price_prediction/core/manage.py collectstatic --noinput && python house_price_prediction/core/manage.py migrate && python house_price_prediction/core/manage.py shell -c 'from ingest.generate_data import generate_synthetic_data; generate_synthetic_data()'"
     startCommand: "cd house_price_prediction/core && gunicorn core.wsgi:application"
@@ -13,3 +13,20 @@ services:
         generateValue: true
       - key: WEB_CONCURRENCY
         value: 2
+
+  - type: static
+    name: nestiq-frontend
+    region: singapore
+    plan: free
+    buildCommand: "cd nestiq-predict-main && npm install && npm run build"
+    publishDir: nestiq-predict-main/dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        fromService:
+          type: web
+          name: nestiq-predictor
+          property: url
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
