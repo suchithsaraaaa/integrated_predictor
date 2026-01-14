@@ -36,7 +36,7 @@ def _nearest_distance_and_count(latitude: float, longitude: float, tags: dict):
         gdf = ox.features_from_point(
             (latitude, longitude),
             tags=tags,
-            dist=5000,  # 5km radius
+            dist=2000,  # Reduced to 2km for speed/stability
         )
 
         if gdf.empty:
