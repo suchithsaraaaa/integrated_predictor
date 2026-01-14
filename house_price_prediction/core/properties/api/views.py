@@ -68,86 +68,14 @@ def predict_price_view(request):
         )
         raw_price_current = predict_price(features_current)[0]
 
-        # 2. DETERMINE REGION & MULTIPLIERS
-        # Logic: Final = Raw_INR * (Value_Ratio / Exchange_Rate)
-        # UK: ~15x value / 110 INR/GBP = 0.14
-        # US: ~12x value / 85 INR/USD = 0.14
-        # AU: ~10x value / 55 INR/AUD = 0.18
+        # 2. DETERMINE REGION & MULTIPLIERS (GLOBAL SUPPORT)
+        from properties.services.location_intelligence import get_location_economics
         
-        currency = {"symbol": "$", "code": "USD"}
-        # BASE CALIBRATION:
-        # Raw Model Output is approx 60,000,000 (6 Crore).
-        # We need to scale this to real-world averages.
+        econ = get_location_economics(latitude, longitude)
         
-        # Default (US/Americas) -> Target $800k => 0.013
-        market_multiplier = 0.013 
-        growth_factor = 1.04
-
-        # India (INR)
-        if 6 <= latitude <= 37 and 68 <= longitude <= 97:
-            currency = {"symbol": "₹", "code": "INR"}
-            # Target ~1.5 Cr => 0.25
-            market_multiplier = 0.25 
-            growth_factor = 1.06
-            
-            if 18.5 <= latitude <= 19.5 and 72.5 <= longitude <= 73.5: # Mumbai
-                market_multiplier = 0.45 # ~2.7 Cr
-                growth_factor = 1.08
-            elif 12.5 <= latitude <= 13.5 and 77.0 <= longitude <= 78.0: # Blr
-                market_multiplier = 0.30 # ~1.8 Cr
-                growth_factor = 1.09
-
-        # UK (GBP) - Exch ~110
-        elif 49 <= latitude <= 61 and -8 <= longitude <= 2:
-            currency = {"symbol": "£", "code": "GBP"}
-            # Target £600k => 0.01
-            market_multiplier = 0.01
-            growth_factor = 1.03
-
-        # Europe (EUR) - Exch ~90
-        elif 35 <= latitude <= 72 and -12 <= longitude <= 45:
-             currency = {"symbol": "€", "code": "EUR"}
-             # Target €660k => 0.011
-             market_multiplier = 0.011
-             growth_factor = 1.03
-
-        # Australia (AUD) - Exch ~55
-        elif -45 <= latitude <= -10 and 110 <= longitude <= 155:
-            currency = {"symbol": "A$", "code": "AUD"}
-            # Target A$1M => 0.016
-            market_multiplier = 0.016
-            growth_factor = 1.05
-
-        # New Zealand (NZD)
-        elif -48 <= latitude <= -33 and 165 <= longitude <= 180:
-            currency = {"symbol": "NZ$", "code": "NZD"}
-            # Target NZ$1M => 0.017
-            market_multiplier = 0.017
-            growth_factor = 1.04
-
-        # Canada (CAD) - Lat > 49 approx for West, > 42 for East
-        elif 42 <= latitude <= 83 and -141 <= longitude <= -50 and not (24 <= latitude <= 49 and -125 <= longitude <= -66):
-             # Rough box, but tries to exclude US. 
-             # Actually, simpler: Check Canada Specifics first, or just overlap handling.
-             # Let's use a distinct box for Canada vs US.
-             pass 
-
-        # Let's do accurate splitting for North America
-        elif 15 <= latitude <= 75 and -170 <= longitude <= -50:
-             # Split US vs Canada roughly by Latitude 49 (West) / 44 (East)
-             
-             # Canada (Approx)
-             if latitude >= 49 or (latitude >= 42 and -83 <= longitude <= -50): 
-                 currency = {"symbol": "C$", "code": "CAD"}
-                 # Target C$1.1M => 0.018
-                 market_multiplier = 0.018
-                 growth_factor = 1.04
-             else:
-                 # USA
-                 currency = {"symbol": "$", "code": "USD"}
-                 # Target $800k => 0.013
-                 market_multiplier = 0.013
-                 growth_factor = 1.04
+        currency = econ['currency']
+        market_multiplier = econ['mult']
+        growth_factor = econ['growth']
 
         # 3. APPLY LOGIC (With Heuristic Location Weighting)
         # The base ML model might be insensitive to these new metrics if not trained on widely diverse data.
