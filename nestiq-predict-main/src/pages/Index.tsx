@@ -7,9 +7,7 @@ import PageTransition from "@/components/PageTransition";
 
 // Helper for Django static files
 const getAssetPath = (path: string) => {
-  if (import.meta.env.PROD) {
-    return `/assets${path}`;
-  }
+  // Videos are in root /videos/ in production
   return path;
 };
 
