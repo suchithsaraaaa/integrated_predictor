@@ -104,46 +104,14 @@ def get_area_insights(latitude: float, longitude: float) -> Dict:
     # -----------------------------
     # We re-enable this because the Wizard UI hides the latency.
     # The 'warmup' endpoint triggers this while the user fills the form.
-    try:
-        # Increase timeout/settings for OSM
-        import osmnx as ox
-        ox.settings.timeout = 30 
-        ox.settings.use_cache = True
-        ox.settings.cache_folder = 'cache' 
+        # 🚨 HOTFIX: Bypass Live OSM fetching to prevent Server Crash (OOM)
+        # The t2.micro instance cannot handle the heavy graph operations.
+        print(f"   [PERFORMANCE] Skipping live OSM fetch for {latitude},{longitude}. Using Fallback.")
+        return fallback_insights()
         
-        crime_percent = int(compute_crime_index(latitude, longitude) * 100)
-
-        school_dist, school_count = _nearest_distance_and_count(
-            latitude, longitude, {"amenity": "school"}
-        )
-        
-        hospital_dist, hospital_count = _nearest_distance_and_count(
-            latitude, longitude, {"amenity": "hospital"}
-        )
-
-        transport_dist, transport_count = _nearest_distance_and_count(
-            latitude, longitude, {
-                "public_transport": True,
-                "railway": True,
-                "highway": "bus_stop",
-            }
-        )
-        
-        result = {
-            "crime_rate_percent": crime_percent,
-            "schools": {
-                "nearest_distance_km": school_dist or 5.0, 
-                "count": school_count,
-            },
-            "hospitals": {
-                "nearest_distance_km": hospital_dist or 5.0,
-                "count": hospital_count,
-            },
-            "public_transport": {
-                "nearest_distance_km": transport_dist or 5.0,
-                "count": transport_count,
-            },
-        }
+        # --- DISABLED LIVE FETCHING ---
+        # import osmnx as ox
+        # ... (rest of the heavy logic masked out)
         
     except Exception as e:
         # Log the actual error
