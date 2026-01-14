@@ -110,18 +110,18 @@ def predict_price_view(request):
         if 6 <= latitude <= 37 and 68 <= longitude <= 97:
             currency = {"symbol": "₹", "code": "INR"}
             
-            if 18.5 <= latitude <= 19.5 and 72.5 <= longitude <= 73.5:
-                market_multiplier = 2.5 
+                if 18.5 <= latitude <= 19.5 and 72.5 <= longitude <= 73.5:
+                market_multiplier = 2.0 
                 growth_factor = 1.2 # Mumbai grows faster
-                print(f"[DEBUG] Region: MUMBAI (x2.5, Growth x1.2)")
+                print(f"[DEBUG] Region: MUMBAI (x2.0, Growth x1.2)")
             elif 12.5 <= latitude <= 13.5 and 77.0 <= longitude <= 78.0:
-                market_multiplier = 1.4 
+                market_multiplier = 1.2 
                 growth_factor = 1.4 # Bangalore tech boom
-                print(f"[DEBUG] Region: BANGALORE (x1.4, Growth x1.4)")
+                print(f"[DEBUG] Region: BANGALORE (x1.2, Growth x1.4)")
             elif 28.0 <= latitude <= 29.0 and 76.5 <= longitude <= 77.5:
-                market_multiplier = 1.6
+                market_multiplier = 1.3
                 growth_factor = 1.1
-                print(f"[DEBUG] Region: DELHI (x1.6, Growth x1.1)")
+                print(f"[DEBUG] Region: DELHI (x1.3, Growth x1.1)")
             else:
                 market_multiplier = 1.0 
                 growth_factor = 1.05 # Emerging India
@@ -130,35 +130,35 @@ def predict_price_view(request):
         # 2. United Kingdom (£) 
         elif 49 <= latitude <= 61 and -8 <= longitude <= 2:
             currency = {"symbol": "£", "code": "GBP"}
-            market_multiplier = 8.0 
+            market_multiplier = 3.5 
             growth_factor = 0.8 # Mature market, slower growth
-            print(f"[DEBUG] Region: UK (x8.0, Growth x0.8)")
+            print(f"[DEBUG] Region: UK (x3.5, Growth x0.8)")
             
         # 3. Europe (High-level Box) (€)
         elif 35 <= latitude <= 72 and -12 <= longitude <= 45:
              currency = {"symbol": "€", "code": "EUR"}
-             market_multiplier = 7.0 
+             market_multiplier = 3.0 
              growth_factor = 0.9
-             print(f"[DEBUG] Region: EUROPE (x7.0, Growth x0.9)")
+             print(f"[DEBUG] Region: EUROPE (x3.0, Growth x0.9)")
 
         # 4. Australia (A$)
         elif -45 <= latitude <= -10 and 110 <= longitude <= 155:
             currency = {"symbol": "A$", "code": "AUD"}
-            market_multiplier = 6.0
+            market_multiplier = 3.0
             growth_factor = 1.15
-            print(f"[DEBUG] Region: AUSTRALIA (x6.0, Growth x1.15)")
+            print(f"[DEBUG] Region: AUSTRALIA (x3.0, Growth x1.15)")
             
         # 5. New Zealand (NZ$)
         elif -48 <= latitude <= -33 and 165 <= longitude <= 180:
              currency = {"symbol": "NZ$", "code": "NZD"}
-             market_multiplier = 5.0
+             market_multiplier = 2.5
              growth_factor = 1.1
              
         # 6. Americas (Default USD)
         elif 15 <= latitude <= 70 and -170 <= longitude <= -50:
-             market_multiplier = 9.0 
+             market_multiplier = 3.5 
              growth_factor = 1.1 # Steady US growth
-             print(f"[DEBUG] Region: AMERICAS (x9.0, Growth x1.1)")
+             print(f"[DEBUG] Region: AMERICAS (x3.5, Growth x1.1)")
 
         # APPLY MULTIPLIER
         # Only apply growth factor to the FUTURE price
