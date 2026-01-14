@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Home, Bath, Bed, Calendar, TrendingUp, Loader2, MapPin, Search, X, CheckCircle } from "lucide-react";
 import GlassCard from "./ui/GlassCard";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
 
 interface AreaInsights {
   schools: {
