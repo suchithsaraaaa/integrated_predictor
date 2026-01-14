@@ -34,19 +34,25 @@ def get_or_create_crime_metric(latitude: float, longitude: float) -> float:
     ).first()
 
     if metric:
-        return metric.crime_index
+        if metric.crime_index > 0.01:
+            return metric.crime_index
+        # Fallthrough to compute if 0.0
 
     # 2. COMPUTATION
     score = compute_crime_index(latitude, longitude)
 
-    # 3. SAVE
-    AreaMetrics.objects.create(
-        latitude=round(latitude, 4),
-        longitude=round(longitude, 4),
-        crime_index=score,
-        traffic_score=0.0,
-        accessibility_score=0.0
-    )
+    # 3. SAVE (Update or Create)
+    if metric:
+        metric.crime_index = score
+        metric.save(update_fields=["crime_index"])
+    else:
+        AreaMetrics.objects.create(
+            latitude=round(latitude, 4),
+            longitude=round(longitude, 4),
+            crime_index=score,
+            traffic_score=0.0,
+            accessibility_score=0.0
+        )
 
     return score
 

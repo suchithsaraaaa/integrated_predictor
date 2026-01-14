@@ -43,18 +43,24 @@ def get_or_update_traffic_metric(latitude: float, longitude: float) -> float:
     ).first()
 
     if metric:
-        return metric.traffic_score
+        if metric.traffic_score > 0.01:
+            return metric.traffic_score
+        # Fallthrough to compute if 0.0
 
-    # 2. COMPUTATION (Only if missing)
+    # 2. COMPUTATION (Only if missing or 0.0)
     score = compute_traffic_score(latitude, longitude)
     
-    # 3. SAVE
-    AreaMetrics.objects.create(
-        latitude=round(latitude, 4),
-        longitude=round(longitude, 4),
-        traffic_score=score,
-        crime_index=0.0, # Defaults
-        accessibility_score=0.0
-    )
+    # 3. SAVE (Update or Create)
+    if metric:
+        metric.traffic_score = score
+        metric.save(update_fields=["traffic_score"])
+    else:
+        AreaMetrics.objects.create(
+            latitude=round(latitude, 4),
+            longitude=round(longitude, 4),
+            traffic_score=score,
+            crime_index=0.0,
+            accessibility_score=0.0
+        )
 
     return score
