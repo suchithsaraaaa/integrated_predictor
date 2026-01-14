@@ -110,9 +110,22 @@ def predict_price_view(request):
              market_multiplier = 0.14
              growth_factor = 1.1
 
-        # 3. APPLY LOGIC
-        final_current_price = raw_price_current * market_multiplier
-        final_future_price = raw_price_future * market_multiplier * growth_factor
+        # 3. APPLY LOGIC (With Heuristic Location Weighting)
+        # The base ML model might be insensitive to these new metrics if not trained on widely diverse data.
+        # We enforce variance using these relative scores.
+        
+        # Ranges: Crime (0-1), Traffic (0-1), Accessibility (0-1)
+        # High Access (+20%), High Crime (-15%), High Traffic (-5%)
+        
+        c_score = area_insights.get("crime_index", 0.5)
+        t_score = area_insights.get("traffic_score", 0.5)
+        a_score = area_insights.get("accessibility_score", 0.5)
+        
+        heuristic_mult = 1.0 + (a_score * 0.20) - (c_score * 0.15) - (t_score * 0.05)
+        
+        # Apply Market & Heuristic
+        final_current_price = raw_price_current * market_multiplier * heuristic_mult
+        final_future_price = raw_price_future * market_multiplier * growth_factor * heuristic_mult
 
         # 4. TREND
         trend_data = []
