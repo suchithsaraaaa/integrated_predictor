@@ -75,43 +75,54 @@ def predict_price_view(request):
         # AU: ~10x value / 55 INR/AUD = 0.18
         
         currency = {"symbol": "$", "code": "USD"}
-        market_multiplier = 0.14  # Default (approx US/Global)
-        growth_factor = 1.0
+        # BASE CALIBRATION:
+        # Raw Model Output is approx 60,000,000 (6 Crore).
+        # We need to scale this to real-world averages.
+        
+        # Default (US/Americas) -> Target $800k => 0.013
+        market_multiplier = 0.013 
+        growth_factor = 1.04
 
         # India (INR)
         if 6 <= latitude <= 37 and 68 <= longitude <= 97:
             currency = {"symbol": "₹", "code": "INR"}
-            market_multiplier = 0.6  # Calibration
-            growth_factor = 1.05
+            # Target ~1.5 Cr => 0.25
+            market_multiplier = 0.25 
+            growth_factor = 1.06
             
             if 18.5 <= latitude <= 19.5 and 72.5 <= longitude <= 73.5: # Mumbai
-                market_multiplier = 1.2  # Mumbai is expensive
+                market_multiplier = 0.45 # ~2.7 Cr
+                growth_factor = 1.08
             elif 12.5 <= latitude <= 13.5 and 77.0 <= longitude <= 78.0: # Blr
-                market_multiplier = 0.8  
+                market_multiplier = 0.30 # ~1.8 Cr
+                growth_factor = 1.09
 
         # UK (GBP) - Exch ~110
         elif 49 <= latitude <= 61 and -8 <= longitude <= 2:
             currency = {"symbol": "£", "code": "GBP"}
-            market_multiplier = 0.14
-            growth_factor = 0.9
+            # Target £600k => 0.01
+            market_multiplier = 0.01
+            growth_factor = 1.03
 
         # Europe (EUR) - Exch ~90
         elif 35 <= latitude <= 72 and -12 <= longitude <= 45:
              currency = {"symbol": "€", "code": "EUR"}
-             market_multiplier = 0.13
-             growth_factor = 0.95
+             # Target €660k => 0.011
+             market_multiplier = 0.011
+             growth_factor = 1.03
 
         # Australia (AUD) - Exch ~55
         elif -45 <= latitude <= -10 and 110 <= longitude <= 155:
             currency = {"symbol": "A$", "code": "AUD"}
-            market_multiplier = 0.18
-            growth_factor = 1.1
+            # Target A$1M => 0.016
+            market_multiplier = 0.016
+            growth_factor = 1.05
 
         # Americas (USD) - Exch ~86
         elif 15 <= latitude <= 70 and -170 <= longitude <= -50:
              currency = {"symbol": "$", "code": "USD"}
-             market_multiplier = 0.14
-             growth_factor = 1.1
+             market_multiplier = 0.013
+             growth_factor = 1.04
 
         # 3. APPLY LOGIC (With Heuristic Location Weighting)
         # The base ML model might be insensitive to these new metrics if not trained on widely diverse data.
