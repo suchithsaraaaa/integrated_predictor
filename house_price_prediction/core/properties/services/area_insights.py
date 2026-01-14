@@ -90,33 +90,12 @@ def get_area_insights(latitude: float, longitude: float) -> Dict:
     print(f"   [CACHE MISS] Fetching live data for {latitude}, {longitude}...")
 
     # -----------------------------
-    # Live computation (High Quality)
+    # Live computation (DISABLED)
     # -----------------------------
-    # We re-enable this because the Wizard UI hides the latency.
-    # The 'warmup' endpoint triggers this while the user fills the form.
-    # -----------------------------
-    # Live computation (High Quality)
-    # -----------------------------
-    # We re-enable this because the Wizard UI hides the latency.
-    # The 'warmup' endpoint triggers this while the user fills the form.
-    # -----------------------------
-    # Live computation (High Quality)
-    # -----------------------------
-    # We re-enable this because the Wizard UI hides the latency.
-    # The 'warmup' endpoint triggers this while the user fills the form.
-        # 🚨 HOTFIX: Bypass Live OSM fetching to prevent Server Crash (OOM)
-        # The t2.micro instance cannot handle the heavy graph operations.
-        print(f"   [PERFORMANCE] Skipping live OSM fetch for {latitude},{longitude}. Using Fallback.")
-        return fallback_insights()
-        
-        # --- DISABLED LIVE FETCHING ---
-        # import osmnx as ox
-        # ... (rest of the heavy logic masked out)
-        
-    except Exception as e:
-        # Log the actual error
-        print(f"Area Insights Error for {latitude},{longitude}: {e}")
-        return fallback_insights()
+    # 🚨 HOTFIX: Bypass Live OSM fetching to prevent Server Crash (OOM)
+    # The t2.micro instance cannot handle the heavy graph operations.
+    print(f"   [PERFORMANCE] Skipping live OSM fetch for {latitude},{longitude}. Using Fallback.")
+    return fallback_insights()
 
     # -----------------------------
     # Cache result
