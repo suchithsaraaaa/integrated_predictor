@@ -5,6 +5,9 @@ from rest_framework.response import Response
 from ml.feature_engineering.build_features import build_feature_vector
 from ml.predict import predict_price
 from properties.services.area_insights import get_area_insights
+from properties.services.crime import get_or_create_crime_metric
+from properties.services.traffic import get_or_update_traffic_metric
+from properties.services.accessibility import get_or_update_accessibility_metric
 
 from django.views.decorators.csrf import csrf_exempt
 
@@ -117,9 +120,9 @@ def predict_price_view(request):
         # Ranges: Crime (0-1), Traffic (0-1), Accessibility (0-1)
         # High Access (+20%), High Crime (-15%), High Traffic (-5%)
         
-        c_score = area_insights.get("crime_index", 0.5)
-        t_score = area_insights.get("traffic_score", 0.5)
-        a_score = area_insights.get("accessibility_score", 0.5)
+        c_score = get_or_create_crime_metric(latitude, longitude)
+        t_score = get_or_update_traffic_metric(latitude, longitude)
+        a_score = get_or_update_accessibility_metric(latitude, longitude)
         
         heuristic_mult = 1.0 + (a_score * 0.20) - (c_score * 0.15) - (t_score * 0.05)
         
@@ -141,7 +144,7 @@ def predict_price_view(request):
              raw = predict_price(fts)[0]
              
              # Apply simple scalar logic for trend
-             adjusted = raw * market_multiplier
+             adjusted = raw * market_multiplier * heuristic_mult
              if y > 2025:
                  adjusted *= growth_factor
              
