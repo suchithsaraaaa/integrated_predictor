@@ -1,9 +1,9 @@
 try:
     import reverse_geocoder as rg
     HAS_RG = True
-except ImportError:
+except Exception:
     HAS_RG = False
-    print("⚠️ WARNING: reverse_geocoder module not found. Running in fallback mode.")
+    print("⚠️ WARNING: reverse_geocoder module failed to load. Running in fallback mode.")
 
 # ---------------------------------------------------------
 # GLOBAL ECONOMY MAP
