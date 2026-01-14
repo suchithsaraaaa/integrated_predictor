@@ -39,13 +39,9 @@ interface WizardProps {
 // 6. Show Step 2 UI.
 // --- Steps Config ---
 const getAssetPath = (path: string) => {
-    // In production (built fastAPI/Django), we rely on static files.
-    // If running in Vite dev, raw paths work.
-    if (import.meta.env.PROD) {
-        // Django static URL is set to '/assets/' in settings.py
-        // Videos are in 'core/static/videos' -> mapped to '/assets/videos'
-        return `/assets${path}`;
-    }
+    // Videos are copied to the root 'videos/' directory in dist/
+    // So '/videos/step1.mp4' is correct for both Dev and Prod.
+    // Nginx serves root /var/www/nestiq/, so /videos/ works.
     return path;
 };
 
