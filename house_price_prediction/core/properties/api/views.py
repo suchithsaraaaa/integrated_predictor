@@ -118,11 +118,36 @@ def predict_price_view(request):
             market_multiplier = 0.016
             growth_factor = 1.05
 
-        # Americas (USD) - Exch ~86
-        elif 15 <= latitude <= 70 and -170 <= longitude <= -50:
-             currency = {"symbol": "$", "code": "USD"}
-             market_multiplier = 0.013
-             growth_factor = 1.04
+        # New Zealand (NZD)
+        elif -48 <= latitude <= -33 and 165 <= longitude <= 180:
+            currency = {"symbol": "NZ$", "code": "NZD"}
+            # Target NZ$1M => 0.017
+            market_multiplier = 0.017
+            growth_factor = 1.04
+
+        # Canada (CAD) - Lat > 49 approx for West, > 42 for East
+        elif 42 <= latitude <= 83 and -141 <= longitude <= -50 and not (24 <= latitude <= 49 and -125 <= longitude <= -66):
+             # Rough box, but tries to exclude US. 
+             # Actually, simpler: Check Canada Specifics first, or just overlap handling.
+             # Let's use a distinct box for Canada vs US.
+             pass 
+
+        # Let's do accurate splitting for North America
+        elif 15 <= latitude <= 75 and -170 <= longitude <= -50:
+             # Split US vs Canada roughly by Latitude 49 (West) / 44 (East)
+             
+             # Canada (Approx)
+             if latitude >= 49 or (latitude >= 42 and -83 <= longitude <= -50): 
+                 currency = {"symbol": "C$", "code": "CAD"}
+                 # Target C$1.1M => 0.018
+                 market_multiplier = 0.018
+                 growth_factor = 1.04
+             else:
+                 # USA
+                 currency = {"symbol": "$", "code": "USD"}
+                 # Target $800k => 0.013
+                 market_multiplier = 0.013
+                 growth_factor = 1.04
 
         # 3. APPLY LOGIC (With Heuristic Location Weighting)
         # The base ML model might be insensitive to these new metrics if not trained on widely diverse data.
