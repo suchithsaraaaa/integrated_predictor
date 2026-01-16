@@ -6,4 +6,5 @@ echo "================================================="
 source /home/ubuntu/integrated_predictor/house_price_prediction/core/.venv/bin/activate
 
 # Run Python code
-python3 deploy/test_prediction_internal.py
+cd house_price_prediction/core
+python3 ../../deploy/test_prediction_internal.py

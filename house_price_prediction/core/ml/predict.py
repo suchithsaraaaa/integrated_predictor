@@ -1,6 +1,9 @@
 # Imports moved inside functions for lazy loading (Memory Optimization)
 
-MODEL_PATH = "ml/price_model.pkl"
+import os
+
+# Use absolute path relative to this file to avoid CWD issues
+MODEL_PATH = os.path.join(os.path.dirname(__file__), "price_model.pkl")
 _model = None
 
 FEATURE_COLUMNS = [
