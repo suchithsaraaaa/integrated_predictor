@@ -57,15 +57,16 @@ try:
     # We need to call the view manually. 
     # Since it's decorated with @api_view, we treat it as a callable view
     
-    from properties.services.location_intelligence import get_location_economics
-    econ = get_location_economics(51.5074, -0.1278)
-    print(f"   - Location Data: {econ}")
+    print("   ... Calling predict_price_view(request) ...")
+    response = predict_price_view(request)
     
-    from properties.services.area_insights import get_area_insights
-    insights = get_area_insights(51.5074, -0.1278, force_live=False)
-    print(f"   - Insights (Lite Mode): OK")
-
-    print("\n✅ Internal Logic Checks Passed!")
+    print(f"   - Response Code: {response.status_code}")
+    print(f"   - Body: {response.data}")
+    
+    if response.status_code == 200:
+        print("\n✅ Internal Logic Checks Passed!")
+    else:
+        print(f"\n❌ API Returned Error: {response.data}")
     
 except Exception as e:
     print(f"\n❌ LOGIC CRASH: {e}")
