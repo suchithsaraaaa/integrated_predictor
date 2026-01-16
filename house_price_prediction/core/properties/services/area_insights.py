@@ -67,7 +67,7 @@ def _nearest_distance_and_count(latitude: float, longitude: float, tags: dict):
 # -----------------------------
 # Main public API
 # -----------------------------
-def get_area_insights(latitude: float, longitude: float) -> Dict:
+def get_area_insights(latitude: float, longitude: float, force_live: bool = False) -> Dict:
     """
     Returns cached or computed area intelligence for a location.
     OPTIMIZATION: Bounding Box Search (1.5km radius)
@@ -90,12 +90,60 @@ def get_area_insights(latitude: float, longitude: float) -> Dict:
     print(f"   [CACHE MISS] Fetching live data for {latitude}, {longitude}...")
 
     # -----------------------------
-    # Live computation (DISABLED)
+    # Lite Mode check (Protect Server)
     # -----------------------------
-    # 🚨 HOTFIX: Bypass Live OSM fetching to prevent Server Crash (OOM)
-    # The t2.micro instance cannot handle the heavy graph operations.
-    print(f"   [PERFORMANCE] Skipping live OSM fetch for {latitude},{longitude}. Using Fallback.")
-    return fallback_insights()
+    if not force_live:
+        print(f"   [LITE MODE] Skipping live OSM fetch for {latitude},{longitude}. Using Fallback.")
+        return fallback_insights()
+
+    # -----------------------------
+    # Live computation (High Quality)
+    # -----------------------------
+    try:
+        # Increase timeout/settings for OSM
+        import osmnx as ox
+        ox.settings.timeout = 30 
+        ox.settings.use_cache = True
+        ox.settings.cache_folder = 'cache' 
+        
+        crime_percent = int(compute_crime_index(latitude, longitude) * 100)
+
+        school_dist, school_count = _nearest_distance_and_count(
+            latitude, longitude, {"amenity": "school"}
+        )
+        
+        hospital_dist, hospital_count = _nearest_distance_and_count(
+            latitude, longitude, {"amenity": "hospital"}
+        )
+
+        transport_dist, transport_count = _nearest_distance_and_count(
+            latitude, longitude, {
+                "public_transport": True,
+                "railway": True,
+                "highway": "bus_stop",
+            }
+        )
+        
+        result = {
+            "crime_rate_percent": crime_percent,
+            "schools": {
+                "nearest_distance_km": school_dist or 5.0, 
+                "count": school_count,
+            },
+            "hospitals": {
+                "nearest_distance_km": hospital_dist or 5.0,
+                "count": hospital_count,
+            },
+            "public_transport": {
+                "nearest_distance_km": transport_dist or 5.0,
+                "count": transport_count,
+            },
+        }
+
+    except Exception as e:
+        # Log the actual error
+        print(f"Area Insights Error for {latitude},{longitude}: {e}")
+        return fallback_insights()
 
     # -----------------------------
     # Cache result
