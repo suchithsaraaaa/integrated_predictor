@@ -2,13 +2,14 @@
 echo "📦 Updating Python Dependencies on Server..."
 
 # Expecting to be run from project root (e.g., ~/integrated_predictor)
-VENV_PATH="./house_price_prediction/venv"
+# Expecting to be run from project root (e.g., ~/integrated_predictor)
+VENV_PATH="./house_price_prediction/core/.venv"
 
 # Fallback to absolute path if running from weird context
 if [ ! -d "$VENV_PATH" ]; then
     echo "⚠️  Virtual Environment not found at relative path."
-    echo "    Trying absolute path /home/ubuntu/integrated_predictor/house_price_prediction/venv"
-    VENV_PATH="/home/ubuntu/integrated_predictor/house_price_prediction/venv"
+    echo "    Trying absolute path /home/ubuntu/integrated_predictor/house_price_prediction/core/.venv"
+    VENV_PATH="/home/ubuntu/integrated_predictor/house_price_prediction/core/.venv"
 fi
 
 if [ -d "$VENV_PATH" ]; then
