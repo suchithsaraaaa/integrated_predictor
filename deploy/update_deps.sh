@@ -21,7 +21,7 @@ if [ -d "$VENV_PATH" ]; then
     "$VENV_PATH/bin/pip" install reverse_geocoder
     
     echo "🔄 Restarting NestIQ Service..."
-    systemctl restart nestiq
+    sudo systemctl restart nestiq
     echo "✅ Success! Dependencies updated."
 else
     echo "❌ CRITICAL: Could not find virtual environment at $VENV_PATH"
