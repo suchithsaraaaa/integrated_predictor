@@ -1,13 +1,12 @@
 import os
 import sys
 import django
-from rest_framework.test import APIRequestFactory
-
 # Setup Django Environment
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
 django.setup()
 
+from rest_framework.test import APIRequestFactory
 from properties.api.views import predict_price_view
 
 def test_location(name, lat, lon, expected_currency):
