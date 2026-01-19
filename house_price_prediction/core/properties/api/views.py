@@ -46,7 +46,43 @@ def predict_price_view(request):
         selected_year = int(data["year"])
         CURRENT_YEAR = 2025
 
-        # 1. PREDICT RAW (INR)
+        # 1. GET LOCATION DATA (Insights drive the price!)
+        from properties.services.area_insights import get_area_insights
+        area_insights = get_area_insights(latitude, longitude)
+        
+        # 2. DETERMINE REGION & MULTIPLIERS (GLOBAL SUPPORT)
+        from properties.services.location_intelligence import get_location_economics
+        
+        econ = get_location_economics(latitude, longitude)
+        currency = econ['currency']
+        market_multiplier = econ['mult']
+        growth_factor = econ['growth']
+
+        # 3. CALCULATE INFRASTRUCTURE SCORE (The "Equation")
+        # User Logic: Schools/Hospitals/Crime -> Price
+        schools = area_insights['schools']['count']
+        hospitals = area_insights['hospitals']['count']
+        crime_pct = area_insights['crime_rate_percent'] # e.g. 15
+
+        # Calibration:
+        # Schools: +0.5% per school (max cap useful)
+        # Hospitals: +1.0% per hospital
+        # Crime: -1.0% per percentage point of crime
+        
+        infra_bonus = (schools * 0.005) + (hospitals * 0.01)
+        crime_penalty = (crime_pct / 100.0) * 1.5 # Stronger penalty
+        
+        # Base factor starts at 1.0
+        # If High Crime (20%) -> -0.30
+        # If Good Infra (10 schools, 5 hosp) -> +0.05 + 0.05 = +0.10
+        quality_multiplier = 1.0 + infra_bonus - crime_penalty
+        
+        # Clamp to avoid extreme outliers (0.5x to 1.5x of base regional price)
+        quality_multiplier = max(0.5, min(quality_multiplier, 1.5))
+        
+        print(f"   [LOGIC] Loc: {latitude},{longitude} | S:{schools} H:{hospitals} C:{crime_pct}% | QualMult: {quality_multiplier:.2f}")
+
+        # 4. PREDICT RAW (Base Model)
         features_future = build_feature_vector(
             latitude=latitude,
             longitude=longitude,
@@ -55,7 +91,6 @@ def predict_price_view(request):
             bathrooms=int(data["bathrooms"]),
             year=selected_year,
         )
-        # Raw model output is in Rupees (approx)
         raw_price_future = predict_price(features_future)[0]
 
         features_current = build_feature_vector(
@@ -68,39 +103,13 @@ def predict_price_view(request):
         )
         raw_price_current = predict_price(features_current)[0]
 
-        # 2. DETERMINE REGION & MULTIPLIERS (GLOBAL SUPPORT)
-        from properties.services.location_intelligence import get_location_economics
-        
-        econ = get_location_economics(latitude, longitude)
-        
-        currency = econ['currency']
-        market_multiplier = econ['mult']
-        growth_factor = econ['growth']
+        # 5. FINAL CALCULATION
+        # Price = Base_Model * Regional_Cost * Quality_Score
+        final_current_price = raw_price_current * market_multiplier * quality_multiplier
+        # Future also applies growth
+        final_future_price = raw_price_future * market_multiplier * growth_factor * quality_multiplier
 
-        # 3. APPLY LOGIC (With Heuristic Location Weighting)
-        # The base ML model might be insensitive to these new metrics if not trained on widely diverse data.
-        # We enforce variance using these relative scores.
-        
-        # Ranges: Crime (0-1), Traffic (0-1), Accessibility (0-1)
-        # High Access (+20%), High Crime (-15%), High Traffic (-5%)
-        
-        c_score = get_or_create_crime_metric(latitude, longitude)
-        t_score = get_or_update_traffic_metric(latitude, longitude)
-        a_score = get_or_update_accessibility_metric(latitude, longitude)
-        
-        heuristic_mult = 1.0 + (a_score * 0.20) - (c_score * 0.15) - (t_score * 0.05)
-        
-        # Apply Market & Heuristic
-        # FINAL MILE: Deterministic Coordinate Hash
-        # Guarantees that even 0.0001 difference in Lat/Lon creates a distinct price.
-        # Variance is approx +/- 2%
-        import math
-        coord_variance = (math.sin(latitude * 9999) + math.cos(longitude * 9999)) / 50.0
-        
-        final_current_price = raw_price_current * market_multiplier * heuristic_mult * (1.0 + coord_variance)
-        final_future_price = raw_price_future * market_multiplier * growth_factor * heuristic_mult * (1.0 + coord_variance)
-
-        # 4. TREND
+        # 6. TREND
         trend_data = []
         for y in range(2021, 2030):
              fts = build_feature_vector(
@@ -113,15 +122,12 @@ def predict_price_view(request):
             )
              raw = predict_price(fts)[0]
              
-             # Apply simple scalar logic for trend
-             adjusted = raw * market_multiplier * heuristic_mult
+             # Apply logic
+             adjusted = raw * market_multiplier * quality_multiplier
              if y > 2025:
                  adjusted *= growth_factor
              
              trend_data.append({"year": y, "price": round(float(adjusted), 2)})
-
-        # 5. INSIGHTS
-        area_insights = get_area_insights(latitude, longitude)
 
         response = Response({
             "predicted_price": round(float(final_future_price), 2),
