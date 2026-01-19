@@ -60,9 +60,10 @@ def predict_price_view(request):
 
         # 3. CALCULATE INFRASTRUCTURE SCORE (The "Equation")
         # User Logic: Schools/Hospitals/Crime -> Price
-        schools = area_insights['schools']['count']
-        hospitals = area_insights['hospitals']['count']
-        crime_pct = area_insights['crime_rate_percent'] # e.g. 15
+        # DEFENSIVE: Use .get() to prevent crashes on legacy cache data
+        schools = area_insights.get('schools', {}).get('count', 5)
+        hospitals = area_insights.get('hospitals', {}).get('count', 2)
+        crime_pct = area_insights.get('crime_rate_percent', 10) # Default 10% if missing
 
         # Calibration:
         # Schools: +0.5% per school (max cap useful)
