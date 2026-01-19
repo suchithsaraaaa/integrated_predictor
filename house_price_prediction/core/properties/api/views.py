@@ -80,7 +80,16 @@ def predict_price_view(request):
         # Clamp to avoid extreme outliers (0.5x to 1.5x of base regional price)
         quality_multiplier = max(0.5, min(quality_multiplier, 1.5))
         
-        print(f"   [LOGIC] Loc: {latitude},{longitude} | S:{schools} H:{hospitals} C:{crime_pct}% | QualMult: {quality_multiplier:.2f}")
+        # DYNAMIC GROWTH FACTOR
+        # Better area = Faster Growth. High Crime = Slower Growth.
+        # We dampen the impact for growth (it shouldn't swing as wildly as price)
+        growth_modifier = 1.0 + (infra_bonus * 0.5) - (crime_penalty * 0.5)
+        # Clamp growth modifier (e.g. 0.8x to 1.2x of base growth)
+        growth_modifier = max(0.9, min(growth_modifier, 1.1))
+        
+        final_growth_factor = growth_factor * growth_modifier
+
+        print(f"   [LOGIC] Loc: {latitude},{longitude} | QualMult: {quality_multiplier:.2f} | Growth: {final_growth_factor:.3f}")
 
         # 4. PREDICT RAW (Base Model)
         features_future = build_feature_vector(
@@ -106,28 +115,27 @@ def predict_price_view(request):
         # 5. FINAL CALCULATION
         # Price = Base_Model * Regional_Cost * Quality_Score
         final_current_price = raw_price_current * market_multiplier * quality_multiplier
-        # Future also applies growth
-        final_future_price = raw_price_future * market_multiplier * growth_factor * quality_multiplier
+        
+        # Future Price = Current Price * (Growth ^ Years)
+        years_diff = max(0, selected_year - CURRENT_YEAR)
+        final_future_price = final_current_price * (final_growth_factor ** years_diff)
 
         # 6. TREND
         trend_data = []
         for y in range(2021, 2030):
-             fts = build_feature_vector(
-                latitude=latitude,
-                longitude=longitude,
-                area_sqft=float(data["area_sqft"]),
-                bedrooms=int(data["bedrooms"]),
-                bathrooms=int(data["bathrooms"]),
-                year=y,
-            )
-             raw = predict_price(fts)[0]
+             # For trend, we can just project from current price for simplicity and smoothness
+             # logic: Price(Y) = Price(Current) * (Growth ^ (Y - Current))
              
-             # Apply logic
-             adjusted = raw * market_multiplier * quality_multiplier
-             if y > 2025:
-                 adjusted *= growth_factor
+             diff = y - CURRENT_YEAR
+             if diff == 0:
+                 price_y = final_current_price
+             elif diff > 0:
+                 price_y = final_current_price * (final_growth_factor ** diff)
+             else:
+                 # Backcast (Simulated via inverse growth)
+                 price_y = final_current_price / (final_growth_factor ** abs(diff))
              
-             trend_data.append({"year": y, "price": round(float(adjusted), 2)})
+             trend_data.append({"year": y, "price": round(float(price_y), 2)})
 
         response = Response({
             "predicted_price": round(float(final_future_price), 2),
