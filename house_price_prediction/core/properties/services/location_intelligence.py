@@ -37,29 +37,37 @@ DEFAULT_CAD = {'currency': {'symbol': 'C$', 'code': 'CAD'}, 'mult': 0.018, 'grow
 DEFAULT_AUD = {'currency': {'symbol': 'A$', 'code': 'AUD'}, 'mult': 0.016, 'growth': 1.05}
 DEFAULT_NZD = {'currency': {'symbol': 'NZ$', 'code': 'NZD'}, 'mult': 0.017, 'growth': 1.04}
 
-from properties.services.crime import haversine_distance
+import math
 
 # ---------------------------------------------------------
 # MAJOR CITY HUBS (Explicit Overrides)
 # ---------------------------------------------------------
 # These take priority over general country logic.
-# Keys are (Lat, Lon). Values are economy dicts.
 MAJOR_CITIES = {
     # Mumbai (Mb)
     (19.0760, 72.8777): {'currency': {'symbol': '₹', 'code': 'INR'}, 'mult': 0.45, 'growth': 1.08},
     # Bangalore (Blr)
-    (12.9716, 77.5946): {'currency': {'symbol': '₹', 'code': 'INR'}, 'mult': 0.30, 'growth': 1.09},
+    (12.9716, 77.5946): {'currency': {'symbol': '₹', 'code': 'INR'}, 'mult': 0.31, 'growth': 1.09},
     # Hyderabad (Hyd)
-    (17.3850, 78.4867): {'currency': {'symbol': '₹', 'code': 'INR'}, 'mult': 0.28, 'growth': 1.10},
+    (17.3850, 78.4867): {'currency': {'symbol': '₹', 'code': 'INR'}, 'mult': 0.29, 'growth': 1.10},
     # Delhi (Del)
     (28.7041, 77.1025): {'currency': {'symbol': '₹', 'code': 'INR'}, 'mult': 0.35, 'growth': 1.07},
     # Chennai (Che)
     (13.0827, 80.2707): {'currency': {'symbol': '₹', 'code': 'INR'}, 'mult': 0.25, 'growth': 1.06},
     # London (LON)
-    (51.5074, -0.1278): {'currency': {'symbol': '£', 'code': 'GBP'}, 'mult': 0.012, 'growth': 1.03}, # Higher mult for London specific
+    (51.5074, -0.1278): {'currency': {'symbol': '£', 'code': 'GBP'}, 'mult': 0.012, 'growth': 1.03},
     # New York (NYC)
     (40.7128, -74.0060): {'currency': {'symbol': '$', 'code': 'USD'}, 'mult': 0.015, 'growth': 1.04},
 }
+
+def haversine_distance(lat1, lon1, lat2, lon2):
+    R = 6371  # Earth radius in km
+    phi1, phi2 = math.radians(lat1), math.radians(lat2)
+    d_phi = math.radians(lat2 - lat1)
+    d_lambda = math.radians(lon2 - lon1)
+    a = math.sin(d_phi / 2)**2 + math.cos(phi1) * math.cos(phi2) * math.sin(d_lambda / 2)**2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    return R * c
 
 def _get_hub_economics(latitude: float, longitude: float):
     """
@@ -69,6 +77,7 @@ def _get_hub_economics(latitude: float, longitude: float):
     for (city_lat, city_lon), data in MAJOR_CITIES.items():
         dist = haversine_distance(latitude, longitude, city_lat, city_lon)
         if dist < 50: # 50km Radius
+            print(f"   [HUB HIT] Location is {dist:.1f}km from Hub. Using Override.")
             return data
     return None
 
