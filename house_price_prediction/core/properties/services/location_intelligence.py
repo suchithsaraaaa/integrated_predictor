@@ -43,21 +43,41 @@ import math
 # MAJOR CITY HUBS (Explicit Overrides)
 # ---------------------------------------------------------
 # These take priority over general country logic.
+# ---------------------------------------------------------
+# MAJOR CITY HUBS (Explicit Overrides)
+# ---------------------------------------------------------
 MAJOR_CITIES = {
-    # Mumbai (Mb)
-    (19.0760, 72.8777): {'currency': {'symbol': '₹', 'code': 'INR'}, 'mult': 0.45, 'growth': 1.08},
-    # Bangalore (Blr)
-    (12.9716, 77.5946): {'currency': {'symbol': '₹', 'code': 'INR'}, 'mult': 0.31, 'growth': 1.09},
-    # Hyderabad (Hyd)
-    (17.3850, 78.4867): {'currency': {'symbol': '₹', 'code': 'INR'}, 'mult': 0.29, 'growth': 1.10},
-    # Delhi (Del)
-    (28.7041, 77.1025): {'currency': {'symbol': '₹', 'code': 'INR'}, 'mult': 0.35, 'growth': 1.07},
-    # Chennai (Che)
-    (13.0827, 80.2707): {'currency': {'symbol': '₹', 'code': 'INR'}, 'mult': 0.25, 'growth': 1.06},
-    # London (LON)
-    (51.5074, -0.1278): {'currency': {'symbol': '£', 'code': 'GBP'}, 'mult': 0.012, 'growth': 1.03},
-    # New York (NYC)
-    (40.7128, -74.0060): {'currency': {'symbol': '$', 'code': 'USD'}, 'mult': 0.015, 'growth': 1.04},
+    # --- INDIA ---
+    (19.0760, 72.8777): {'currency': {'symbol': '₹', 'code': 'INR'}, 'mult': 0.45, 'growth': 1.08}, # Mumbai
+    (12.9716, 77.5946): {'currency': {'symbol': '₹', 'code': 'INR'}, 'mult': 0.31, 'growth': 1.09}, # Bangalore
+    (17.3850, 78.4867): {'currency': {'symbol': '₹', 'code': 'INR'}, 'mult': 0.29, 'growth': 1.10}, # Hyderabad
+    (28.7041, 77.1025): {'currency': {'symbol': '₹', 'code': 'INR'}, 'mult': 0.35, 'growth': 1.07}, # Delhi
+    (13.0827, 80.2707): {'currency': {'symbol': '₹', 'code': 'INR'}, 'mult': 0.25, 'growth': 1.06}, # Chennai
+    
+    # --- UK ---
+    (51.5074, -0.1278): {'currency': {'symbol': '£', 'code': 'GBP'}, 'mult': 0.0125, 'growth': 1.03}, # London
+    (53.4808, -2.2426): {'currency': {'symbol': '£', 'code': 'GBP'}, 'mult': 0.0085, 'growth': 1.04}, # Manchester
+    (52.4862, -1.8904): {'currency': {'symbol': '£', 'code': 'GBP'}, 'mult': 0.0080, 'growth': 1.03}, # Birmingham
+    
+    # --- USA ---
+    (40.7128, -74.0060): {'currency': {'symbol': '$', 'code': 'USD'}, 'mult': 0.0150, 'growth': 1.04}, # NYC
+    (34.0522, -118.2437): {'currency': {'symbol': '$', 'code': 'USD'}, 'mult': 0.0145, 'growth': 1.05}, # LA
+    (41.8781, -87.6298):  {'currency': {'symbol': '$', 'code': 'USD'}, 'mult': 0.0110, 'growth': 1.03}, # Chicago
+    (37.7749, -122.4194): {'currency': {'symbol': '$', 'code': 'USD'}, 'mult': 0.0190, 'growth': 1.06}, # SF (High!)
+    (25.7617, -80.1918):  {'currency': {'symbol': '$', 'code': 'USD'}, 'mult': 0.0135, 'growth': 1.05}, # Miami
+
+    # --- AUSTRALIA ---
+    (-33.8688, 151.2093): {'currency': {'symbol': 'A$', 'code': 'AUD'}, 'mult': 0.0180, 'growth': 1.05}, # Sydney
+    (-37.8136, 144.9631): {'currency': {'symbol': 'A$', 'code': 'AUD'}, 'mult': 0.0160, 'growth': 1.05}, # Melbourne
+    (-27.4705, 153.0260): {'currency': {'symbol': 'A$', 'code': 'AUD'}, 'mult': 0.0140, 'growth': 1.06}, # Brisbane
+    
+    # --- CANADA ---
+    (43.6532, -79.3832): {'currency': {'symbol': 'C$', 'code': 'CAD'}, 'mult': 0.0190, 'growth': 1.05}, # Toronto
+    (49.2827, -123.1207): {'currency': {'symbol': 'C$', 'code': 'CAD'}, 'mult': 0.0210, 'growth': 1.04}, # Vancouver
+    
+    # --- GERMANY ---
+    (52.5200, 13.4050): {'currency': {'symbol': '€', 'code': 'EUR'}, 'mult': 0.0130, 'growth': 1.04}, # Berlin
+    (48.1351, 11.5820): {'currency': {'symbol': '€', 'code': 'EUR'}, 'mult': 0.0150, 'growth': 1.03}, # Munich
 }
 
 def haversine_distance(lat1, lon1, lat2, lon2):
@@ -68,6 +88,26 @@ def haversine_distance(lat1, lon1, lat2, lon2):
     a = math.sin(d_phi / 2)**2 + math.cos(phi1) * math.cos(phi2) * math.sin(d_lambda / 2)**2
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
     return R * c
+
+def _apply_deterministic_variance(data, lat, lon):
+    """
+    Applies a deterministic 'micro-variance' to the multiplier.
+    Ensures that even two locations in the same city/region have slightly different base values.
+    Variation: +/- 10% based on coordinates.
+    """
+    if not data: return data
+    
+    # Create a deep copy to avoid mutating the global constant maps
+    import copy
+    new_data = copy.deepcopy(data)
+    
+    # Deterministic noise (-0.10 to +0.10)
+    seed = (math.sin(lat * 800) + math.cos(lon * 400)) / 10.0
+    
+    # Apply to multiplier
+    new_data['mult'] = new_data['mult'] * (1.0 + seed)
+    
+    return new_data
 
 def _get_hub_economics(latitude: float, longitude: float):
     """
@@ -93,7 +133,7 @@ def get_location_economics(latitude: float, longitude: float):
         # 1. Check City Hubs FIRST (Robust to RG failure)
         hub_data = _get_hub_economics(latitude, longitude)
         if hub_data:
-            return hub_data
+            return _apply_deterministic_variance(hub_data, latitude, longitude)
 
         # 2. Reverse Geocode (If Available)
         if HAS_RG:
@@ -103,36 +143,36 @@ def get_location_economics(latitude: float, longitude: float):
                 
                 # Return mapped economy
                 if country_code in ECONOMY_MAP:
-                    return ECONOMY_MAP[country_code]
+                    return _apply_deterministic_variance(ECONOMY_MAP[country_code], latitude, longitude)
 
         # 3. Smart Fallbacks (If RG missing or unknown country)
         # UK Box
         if 49 <= latitude <= 61 and -8 <= longitude <= 2:
-            return DEFAULT_GBP
+            return _apply_deterministic_variance(DEFAULT_GBP, latitude, longitude)
             
         # Europe Box
         if 35 <= latitude <= 72 and -12 <= longitude <= 45:
-             return DEFAULT_EUR
+             return _apply_deterministic_variance(DEFAULT_EUR, latitude, longitude)
              
         # India Box (Broad)
         if 6 <= latitude <= 37 and 68 <= longitude <= 97:
-             return ECONOMY_MAP.get('IN')
+             return _apply_deterministic_variance(ECONOMY_MAP.get('IN'), latitude, longitude)
              
         # Australia Box
         if -45 <= latitude <= -10 and 110 <= longitude <= 155:
-            return DEFAULT_AUD
+            return _apply_deterministic_variance(DEFAULT_AUD, latitude, longitude)
             
         # New Zealand Box
         if -48 <= latitude <= -33 and 165 <= longitude <= 180:
-            return DEFAULT_NZD
+            return _apply_deterministic_variance(DEFAULT_NZD, latitude, longitude)
             
         # Canada Box (Rough)
         if latitude > 48 and -141 <= longitude <= -52:
-            return DEFAULT_CAD
+            return _apply_deterministic_variance(DEFAULT_CAD, latitude, longitude)
 
         # Default to USD
-        return DEFAULT_USD
+        return _apply_deterministic_variance(DEFAULT_USD, latitude, longitude)
 
     except Exception as e:
         print(f"Error in location intelligence: {e}")
-        return DEFAULT_USD
+        return _apply_deterministic_variance(DEFAULT_USD, latitude, longitude)
