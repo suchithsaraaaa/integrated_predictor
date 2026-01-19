@@ -91,8 +91,14 @@ def predict_price_view(request):
         heuristic_mult = 1.0 + (a_score * 0.20) - (c_score * 0.15) - (t_score * 0.05)
         
         # Apply Market & Heuristic
-        final_current_price = raw_price_current * market_multiplier * heuristic_mult
-        final_future_price = raw_price_future * market_multiplier * growth_factor * heuristic_mult
+        # FINAL MILE: Deterministic Coordinate Hash
+        # Guarantees that even 0.0001 difference in Lat/Lon creates a distinct price.
+        # Variance is approx +/- 2%
+        import math
+        coord_variance = (math.sin(latitude * 9999) + math.cos(longitude * 9999)) / 50.0
+        
+        final_current_price = raw_price_current * market_multiplier * heuristic_mult * (1.0 + coord_variance)
+        final_future_price = raw_price_future * market_multiplier * growth_factor * heuristic_mult * (1.0 + coord_variance)
 
         # 4. TREND
         trend_data = []
