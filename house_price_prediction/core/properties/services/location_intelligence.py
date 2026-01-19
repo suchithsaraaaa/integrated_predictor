@@ -51,10 +51,22 @@ def get_location_economics(latitude: float, longitude: float):
                 
                 # Special Override for India Cities
                 if country_code == 'IN':
-                    if 18.5 <= latitude <= 19.5 and 72.5 <= longitude <= 73.5: # Mb
+                    # Mumbai (Mb)
+                    if 18.5 <= latitude <= 19.5 and 72.5 <= longitude <= 73.5:
                         return {'currency': {'symbol': '₹', 'code': 'INR'}, 'mult': 0.45, 'growth': 1.08}
-                    elif 12.5 <= latitude <= 13.5 and 77.0 <= longitude <= 78.0: # Blr
+                    # Bangalore (Blr)
+                    elif 12.5 <= latitude <= 13.5 and 77.0 <= longitude <= 78.0:
                          return {'currency': {'symbol': '₹', 'code': 'INR'}, 'mult': 0.30, 'growth': 1.09}
+                    # Hyderabad (Hyd) - New!
+                    elif 17.0 <= latitude <= 18.0 and 78.0 <= longitude <= 79.0:
+                         return {'currency': {'symbol': '₹', 'code': 'INR'}, 'mult': 0.28, 'growth': 1.10}
+                    # Delhi (Del) - New!
+                    elif 28.0 <= latitude <= 29.0 and 76.8 <= longitude <= 77.8:
+                         return {'currency': {'symbol': '₹', 'code': 'INR'}, 'mult': 0.35, 'growth': 1.07}
+                    # Chennai (Che) - New!
+                    elif 12.5 <= latitude <= 13.5 and 80.0 <= longitude <= 80.5:
+                         return {'currency': {'symbol': '₹', 'code': 'INR'}, 'mult': 0.25, 'growth': 1.06}
+                         
                     return ECONOMY_MAP.get('IN', DEFAULT_USD)
 
                 # Return mapped economy

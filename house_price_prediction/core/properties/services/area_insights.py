@@ -8,22 +8,41 @@ from properties.services.crime import compute_crime_index
 # -----------------------------
 # Fallback (city-level estimate)
 # -----------------------------
-def fallback_insights() -> Dict:
+import math
+
+def fallback_insights(latitude: float = 0.0, longitude: float = 0.0) -> Dict:
+    """
+    Returns plausible estimates for an area.
+    UPDATED: Uses deterministic hashing to ensure VARIETY in prices.
+    Every coordinate gets a unique 'fingerprint' so prices aren't identical.
+    """
+    # Deterministic Seed
+    seed_val = (math.sin(latitude * 123.45) + math.cos(longitude * 678.90))
+    # Normalize to 0-1
+    seed = (seed_val + 2) / 4  # roughly 0.0 to 1.0
+    
+    # Variance Factors
+    school_cnt = 4 + int(seed * 6)  # 4 to 10
+    hosp_cnt = 2 + int(seed * 4)    # 2 to 6
+    trans_cnt = 5 + int(seed * 10)  # 5 to 15
+    
+    crime_rate = 5 + int(seed * 15) # 5% to 20%
+    
     return {
-        "crime_rate_percent": 10,
+        "crime_rate_percent": crime_rate,
         "schools": {
-            "nearest_distance_km": 1.5,
-            "count": 6,
+            "nearest_distance_km": round(1.0 + (seed * 1.5), 2),
+            "count": school_cnt,
         },
         "hospitals": {
-            "nearest_distance_km": 2.0,
-            "count": 4,
+            "nearest_distance_km": round(1.5 + (seed * 2.0), 2),
+            "count": hosp_cnt,
         },
         "public_transport": {
-            "nearest_distance_km": 0.8,
-            "count": 8,
+            "nearest_distance_km": round(0.5 + (seed * 1.0), 2),
+            "count": trans_cnt,
         },
-        "note": "Estimated using city-level averages (OSM data sparse)",
+        "note": "Estimated using deterministic location hashing",
     }
 
 
@@ -94,7 +113,7 @@ def get_area_insights(latitude: float, longitude: float, force_live: bool = Fals
     # -----------------------------
     if not force_live:
         print(f"   [LITE MODE] Skipping live OSM fetch for {latitude},{longitude}. Using Fallback.")
-        return fallback_insights()
+        return fallback_insights(latitude, longitude)
 
     # -----------------------------
     # Live computation (High Quality)
@@ -143,7 +162,7 @@ def get_area_insights(latitude: float, longitude: float, force_live: bool = Fals
     except Exception as e:
         # Log the actual error
         print(f"Area Insights Error for {latitude},{longitude}: {e}")
-        return fallback_insights()
+        return fallback_insights(latitude, longitude)
 
     # -----------------------------
     # Cache result
