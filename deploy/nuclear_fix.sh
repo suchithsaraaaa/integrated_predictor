@@ -2,6 +2,11 @@
 
 echo "☢️ NUCLEAR FIX INITIATED..."
 
+# 0. FORCE RESYNC (The "Nuclear" part)
+echo "🔄 Forcing Git Sync..."
+git fetch --all
+git reset --hard origin/main
+
 # 1. STOP Service
 echo "🛑 Stopping Nestiq Service..."
 sudo systemctl stop nestiq
@@ -14,9 +19,10 @@ sudo pkill -9 gunicorn || echo "No gunicorn processes found (Good)."
 echo "🔍 Checking Disk Content for Hard Cap..."
 FILE="house_price_prediction/core/properties/api/views.py"
 
-if grep -i "HARD CAP 12%" "$FILE"; then
+# ERROR WAS HERE: Code says "Hard Cap at 12%", grep was "HARD CAP 12%"
+if grep -i "Hard Cap" "$FILE"; then
     echo "✅ SUCCESS: The HARD CAP code is present on disk."
-    grep -i "HARD CAP 12%" "$FILE" -C 2
+    grep -i "Hard Cap" "$FILE" -C 2
 else
     echo "❌ CRITICAL FAILURE: The code is NOT on disk."
     echo "Listing file tail:"
