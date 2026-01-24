@@ -89,6 +89,9 @@ def predict_price_view(request):
         growth_modifier = max(0.95, min(growth_modifier, 1.05))
         
         final_growth_factor = growth_factor * growth_modifier
+        
+        # SAFETY: Hard Cap at 12% annual growth to prevent runaway projections
+        final_growth_factor = min(final_growth_factor, 1.12)
 
         print(f"   [LOGIC] Loc: {latitude},{longitude} | QualMult: {quality_multiplier:.2f} | Growth: {final_growth_factor:.3f}")
 
