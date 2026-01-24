@@ -17,7 +17,7 @@ find . -type f -name "*.pyc" -delete
 
 # 4. Verify Content (Check if Hard Cap exists)
 echo "🔍 Verifying Code..."
-if grep -q "HARD CAP 12%" house_price_prediction/core/properties/api/views.py; then
+if grep -iq "HARD CAP 12%" house_price_prediction/core/properties/api/views.py; then
     echo "✅ Code check passed: Hard Cap found."
 else
     echo "❌ ERROR: New code NOT found. Git pull failed?"
