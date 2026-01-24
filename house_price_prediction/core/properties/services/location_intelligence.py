@@ -48,11 +48,11 @@ import math
 # ---------------------------------------------------------
 MAJOR_CITIES = {
     # --- INDIA ---
-    (19.0760, 72.8777): {'currency': {'symbol': '₹', 'code': 'INR'}, 'mult': 0.45, 'growth': 1.08}, # Mumbai
-    (12.9716, 77.5946): {'currency': {'symbol': '₹', 'code': 'INR'}, 'mult': 0.31, 'growth': 1.09}, # Bangalore
-    (17.3850, 78.4867): {'currency': {'symbol': '₹', 'code': 'INR'}, 'mult': 0.29, 'growth': 1.10}, # Hyderabad
-    (28.7041, 77.1025): {'currency': {'symbol': '₹', 'code': 'INR'}, 'mult': 0.35, 'growth': 1.07}, # Delhi
-    (13.0827, 80.2707): {'currency': {'symbol': '₹', 'code': 'INR'}, 'mult': 0.25, 'growth': 1.06}, # Chennai
+    (19.0760, 72.8777): {'currency': {'symbol': '₹', 'code': 'INR'}, 'mult': 0.45, 'growth': 1.06}, # Mumbai
+    (12.9716, 77.5946): {'currency': {'symbol': '₹', 'code': 'INR'}, 'mult': 0.31, 'growth': 1.07}, # Bangalore
+    (17.3850, 78.4867): {'currency': {'symbol': '₹', 'code': 'INR'}, 'mult': 0.29, 'growth': 1.07}, # Hyderabad
+    (28.7041, 77.1025): {'currency': {'symbol': '₹', 'code': 'INR'}, 'mult': 0.35, 'growth': 1.06}, # Delhi
+    (13.0827, 80.2707): {'currency': {'symbol': '₹', 'code': 'INR'}, 'mult': 0.25, 'growth': 1.05}, # Chennai
     
     # --- UK ---
     (51.5074, -0.1278): {'currency': {'symbol': '£', 'code': 'GBP'}, 'mult': 0.0125, 'growth': 1.03}, # London

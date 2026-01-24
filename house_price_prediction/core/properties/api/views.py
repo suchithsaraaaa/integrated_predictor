@@ -83,10 +83,10 @@ def predict_price_view(request):
         
         # DYNAMIC GROWTH FACTOR
         # Better area = Faster Growth. High Crime = Slower Growth.
-        # We dampen the impact for growth (it shouldn't swing as wildly as price)
-        growth_modifier = 1.0 + (infra_bonus * 0.5) - (crime_penalty * 0.5)
-        # Clamp growth modifier (e.g. 0.8x to 1.2x of base growth)
-        growth_modifier = max(0.9, min(growth_modifier, 1.1))
+        # We dampen the impact for growth (it shouldn't swing as wildly as price - reduced wt to 10%)
+        growth_modifier = 1.0 + (infra_bonus * 0.1) - (crime_penalty * 0.1)
+        # Clamp growth modifier (e.g. 0.95x to 1.05x of base growth)
+        growth_modifier = max(0.95, min(growth_modifier, 1.05))
         
         final_growth_factor = growth_factor * growth_modifier
 
