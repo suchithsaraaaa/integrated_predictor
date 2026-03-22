@@ -3,6 +3,7 @@
 **NestIQ** is a next-generation property valuation engine that combines machine learning, geospatial analysis, and deep economic heuristics to provide accurate, future-proof real estate predictions. unlike traditional valuation tools that rely solely on historical transaction data, NestIQ analyzes the *livability* of a location—crime rates, accessibility, traffic, and amenities—to forecast property value growth over the next 5 years.
 
 ![NestIQ Banner](https://via.placeholder.com/1200x500.png?text=NestIQ+Intelligent+Forecasting)
+https://3.110.121.21.nip.io/ deployed link
 
 ## 🚀 Key Features
 
