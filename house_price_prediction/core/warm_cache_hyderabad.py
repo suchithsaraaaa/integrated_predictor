@@ -26,7 +26,7 @@ LOCATIONS = [
     ("Ameerpet", 17.4375, 78.4487),
     ("Uppal", 17.3984, 78.5583),
     ("L.B. Nagar", 17.3537, 78.5491),
-    ("Serilingampally", 17.4833, 78.3160), # From user screenshot
+    ("Serilingampally", 17.4833, 78.3160),
     ("Nallagandla", 17.4699, 78.3072),
     ("Financial District", 17.4109, 78.3370),
     ("Kokapet", 17.3946, 78.3323)
